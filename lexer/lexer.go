@@ -17,6 +17,18 @@ func New(input string) *Lexer {
 	return l
 }
 
+var keywords = map[string]token.TokenType{
+	"let": token.LET,
+	"fn":  token.FUNCTION,
+}
+
+func getTokenType(ident string) token.TokenType {
+	if keyword, ok := keywords[ident]; ok {
+		return keyword
+	}
+	return token.IDENT
+}
+
 // TODO: idea - lexer only supports ASCII for - add suport for UNICODE and UTF-8
 func (l *Lexer) readChar() {
 	if l.readPosition >= len(l.input) {
@@ -28,9 +40,41 @@ func (l *Lexer) readChar() {
 	l.readPosition++
 }
 
+func isLetter(ch byte) bool {
+	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_'
+}
+
+func (l *Lexer) readIdentifier() string {
+	position := l.position
+	for isLetter(l.ch) {
+		l.readChar()
+	}
+	return l.input[position:l.position]
+}
+
+func (l *Lexer) readNumber() string {
+	position := l.position
+	for isDigit(l.ch) {
+		l.readChar()
+
+	}
+	return l.input[position:l.position]
+}
+
+func isDigit(ch byte) bool {
+	return ch >= '0' && ch <= '9'
+}
+
+func (l *Lexer) skipwhitespace() {
+	for l.ch == '\t' || l.ch == '\r' || l.ch == ' ' || l.ch == '\n' {
+		l.readChar()
+	}
+}
+
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
+	l.skipwhitespace()
 	switch l.ch {
 	case '=':
 		tok = newToken(token.ASSIGN, l.ch)
@@ -51,6 +95,21 @@ func (l *Lexer) NextToken() token.Token {
 	case 0:
 		tok.Type = token.EOF
 		tok.Literal = ""
+	default:
+		if isLetter(l.ch) {
+			ident := l.readIdentifier()
+			tok.Literal = ident
+			tok.Type = getTokenType(ident)
+			return tok
+		} else if isDigit(l.ch) {
+			number := l.readNumber()
+			tok.Literal = number
+			tok.Type = token.INT
+			return tok
+		} else {
+			tok.Type = token.ILLEGAL
+			tok.Literal = string(l.ch)
+		}
 	}
 	l.readChar()
 	return tok
