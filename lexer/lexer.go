@@ -18,8 +18,13 @@ func New(input string) *Lexer {
 }
 
 var keywords = map[string]token.TokenType{
-	"let": token.LET,
-	"fn":  token.FUNCTION,
+	"let":    token.LET,
+	"fn":     token.FUNCTION,
+	"if":     token.IF,
+	"return": token.RETURN,
+	"true":   token.TRUE,
+	"false":  token.FALSE,
+	"else":   token.ELSE,
 }
 
 func getTokenType(ident string) token.TokenType {
@@ -71,13 +76,27 @@ func (l *Lexer) skipwhitespace() {
 	}
 }
 
+func (l *Lexer) peakChar(ch byte, ogTok, tokType token.TokenType) token.Token {
+	if l.readPosition <= len(l.input)+1 {
+		if l.input[l.readPosition] == ch {
+			current := l.ch
+			l.readChar()
+			return token.Token{
+				Type:    tokType,
+				Literal: string(current) + string(ch),
+			}
+		}
+	}
+	return newToken(ogTok, l.ch)
+}
+
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
 	l.skipwhitespace()
 	switch l.ch {
 	case '=':
-		tok = newToken(token.ASSIGN, l.ch)
+		tok = l.peakChar('=', token.ASSIGN, token.EQ)
 	case '+':
 		tok = newToken(token.PLUS, l.ch)
 	case '(':
@@ -92,6 +111,18 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.SEMICOLON, l.ch)
 	case ',':
 		tok = newToken(token.COMMA, l.ch)
+	case '!':
+		tok = l.peakChar('=', token.BANG, token.NOT_EQ)
+	case '/':
+		tok = newToken(token.SLASH, l.ch)
+	case '-':
+		tok = newToken(token.MINUS, l.ch)
+	case '*':
+		tok = newToken(token.ASTERIX, l.ch)
+	case '<':
+		tok = l.peakChar('=', token.LT, token.LT_EQ)
+	case '>':
+		tok = l.peakChar('=', token.GT, token.GT_EQ)
 	case 0:
 		tok.Type = token.EOF
 		tok.Literal = ""
@@ -116,4 +147,8 @@ func (l *Lexer) NextToken() token.Token {
 }
 func newToken(tokenType token.TokenType, ch byte) token.Token {
 	return token.Token{Type: tokenType, Literal: string(ch)}
+}
+func newStringToken(tokenType token.TokenType, literal string) token.Token {
+	return token.Token{Type: tokenType, Literal: literal}
+
 }

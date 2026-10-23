@@ -19,8 +19,18 @@ const (
 	INT   = "INT"   // 123
 
 	// Operators
-	ASSIGN = "="
-	PLUS   = "+"
+	ASSIGN  = "="
+	PLUS    = "+"
+	MINUS   = "-"
+	BANG    = "!"
+	LT      = "<"
+	GT      = ">"
+	SLASH   = "/"
+	ASTERIX = "*"
+	EQ      = "=="
+	NOT_EQ  = "!="
+	LT_EQ   = "<="
+	GT_EQ   = ">="
 
 	// Delimeters
 	COMMA     = ","
@@ -34,4 +44,9 @@ const (
 	//Keywords
 	FUNCTION = "FUNCTION"
 	LET      = "LET"
+	IF       = "IF"
+	ELSE     = "ELSE"
+	RETURN   = "RETURN"
+	FALSE    = "FALSE"
+	TRUE     = "TRUE"
 )
