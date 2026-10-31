@@ -10,9 +10,9 @@ import (
 func TestParser_LetStatements(t *testing.T) {
 
 	input := `
-		let x = 5;
-		let y = 10;
-		let foobar = 838383;
+		let x  5;
+		let  10;
+		let  = 838383;
 	`
 	l := lexer.New(input)
 	p := New(l)
@@ -23,8 +23,12 @@ func TestParser_LetStatements(t *testing.T) {
 		t.Fatalf("ParseProgram() returned nil")
 	}
 
-	if ln := len(program.Statements); ln != 3 {
-		t.Fatalf("prgram Statements does not contain 3 statments got = %d", ln)
+	if ln := len(p.Errors()); ln > 0 {
+		t.Errorf("parser encountered  %d errors", ln)
+		for _, msg := range p.Errors() {
+			t.Errorf("parser error: %q", msg)
+		}
+		t.FailNow()
 	}
 
 	tests := []struct {
@@ -55,7 +59,11 @@ func testLetStatement(t *testing.T, stmt ast.Statement, name string) bool {
 		t.Errorf("statement.TokenLiteral() not '%s', got=%s", name, letStmt.TokenLiteral())
 		return false
 	}
+	if letStmt.Name == nil {
+		t.Errorf("statement.Name is nil ")
 
+		return false
+	}
 	if letStmt.Name.Value != name {
 		t.Errorf("statement.Name.Value not '%s' got='%s'", name, letStmt.Name.Value)
 		return false
