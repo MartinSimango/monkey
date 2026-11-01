@@ -58,8 +58,28 @@ func (p *Parser) parseStatement() ast.Statement {
 			return nil
 		}
 		return stmt
+	case token.RETURN:
+		stmt := p.parseReturnStatement()
+		if stmt == nil {
+			return nil
+		}
+		return stmt
+	default:
+		p.errors = append(p.errors, fmt.Sprintf("Unrecognized token: %s", p.currToken.Type))
 	}
 	return nil
+}
+
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
+	retStmt := &ast.ReturnStatement{Token: p.currToken}
+
+	p.nextToken()
+
+	for !p.curTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return retStmt
 }
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {
@@ -67,7 +87,6 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	letStmt := &ast.LetStatement{Token: p.currToken}
 
 	if !p.expectPeek(token.IDENT) {
-		// p.errors
 		return nil
 	}
 	letStmt.Name = &ast.Identifier{
@@ -75,7 +94,6 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 		Value: p.currToken.Literal,
 	}
 	if !p.expectPeek(token.ASSIGN) {
-
 		return nil
 	}
 
