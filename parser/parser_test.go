@@ -133,3 +133,85 @@ func testLetStatement(t *testing.T, stmt ast.Statement, name string) bool {
 
 	return true
 }
+
+func TestIdentifierExpression(t *testing.T) {
+	input := "foobar;"
+
+	p := New(lexer.New(input))
+
+	program := p.ParseProgram()
+
+	if ln := len(program.Statements); ln != 1 {
+		t.Fatalf("program.Statements does not contain %d statments got=%d", 1, ln)
+	}
+
+	if len(p.Errors()) > 0 {
+		t.Errorf("program encounted %d errors", len(p.Errors()))
+		for _, msg := range p.Errors() {
+			t.Errorf("parser error: %q", msg)
+		}
+		t.FailNow()
+	}
+
+	s, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("expected program.Statement[0] to be ast.ExpressionStatement and got %T", program.Statements[0])
+	}
+
+	ident, ok := s.Expression.(*ast.Identifier)
+	if !ok {
+		t.Fatalf("expected ident to be ast.Identifier and got %T", s.Expression)
+
+	}
+
+	if ident.Value != "foobar" {
+		t.Errorf("ident.Value not foobar got %q", ident.Value)
+	}
+
+	if ident.TokenLiteral() != "foobar" {
+		t.Errorf("ident.Tokenliteral() not foobar got %q", ident.TokenLiteral())
+
+	}
+
+}
+
+func TestIntegerExpression(t *testing.T) {
+	input := "5;"
+
+	p := New(lexer.New(input))
+
+	program := p.ParseProgram()
+
+	if ln := len(program.Statements); ln != 1 {
+		t.Fatalf("program.Statements does not contain %d statments got=%d", 1, ln)
+	}
+
+	if len(p.Errors()) > 0 {
+		t.Errorf("program encounted %d errors", len(p.Errors()))
+		for _, msg := range p.Errors() {
+			t.Errorf("parser error: %q", msg)
+		}
+		t.FailNow()
+	}
+
+	s, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("expected program.Statement[0] to be ast.ExpressionStatement and got %T", program.Statements[0])
+	}
+
+	ident, ok := s.Expression.(*ast.IntegerLiteral)
+	if !ok {
+		t.Fatalf("expected ident to be ast.IntegerLiteral and got %T", s.Expression)
+
+	}
+
+	if ident.Value != "5" {
+		t.Errorf("ident.Value not 5 got %q", ident.Value)
+	}
+
+	if ident.TokenLiteral() != "5" {
+		t.Errorf("ident.Tokenliteral() not 5 got %q", ident.TokenLiteral())
+
+	}
+
+}

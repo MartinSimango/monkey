@@ -8,11 +8,32 @@ import (
 	"github.com/MartinSimango/monkey/token"
 )
 
+type (
+	prefixParseFn func() ast.Expression
+	infixParseFn  func(ast.Expression) ast.Expression
+	// postfixParseFn - TODO: something for you to figure out
+)
+
+const (
+	_ int = iota
+	LOWEST
+	EQUALS      //
+	LESSGREATER // > or <
+	SUM         // +
+	PRODUCT     // *
+	PREFIX      // -x
+	CALL        // myFunction(x)
+
+)
+
 type Parser struct {
 	l         *lexer.Lexer
 	errors    []string
 	currToken token.Token
 	peekToken token.Token
+
+	prefixParseFns map[token.TokenType]prefixParseFn
+	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -22,7 +43,20 @@ func New(l *lexer.Lexer) *Parser {
 	}
 	p.nextToken()
 	p.nextToken()
+	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
+	p.infixParseFns = make(map[token.TokenType]infixParseFn)
+
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 	return p
+}
+
+func (p *Parser) registerPrefix(t token.TokenType, fn prefixParseFn) {
+	p.prefixParseFns[t] = fn
+}
+
+func (p *Parser) registerInfix(t token.TokenType, fn infixParseFn) {
+	p.infixParseFns[t] = fn
 }
 
 func (p *Parser) nextToken() {
@@ -65,11 +99,41 @@ func (p *Parser) parseStatement() ast.Statement {
 		}
 		return stmt
 	default:
-		p.errors = append(p.errors, fmt.Sprintf("Unrecognized token: %s", p.currToken.Type))
+		stmt := p.parseExpressionStatement()
+		if stmt == nil {
+			return nil
+		}
+		return stmt
 	}
-	return nil
 }
 
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	stmt := &ast.ExpressionStatement{Token: p.currToken}
+
+	stmt.Expression = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseExpression(precedence int) ast.Expression {
+	prefix := p.prefixParseFns[p.currToken.Type]
+	if prefix == nil {
+		return nil
+	}
+	leftExp := prefix()
+	return leftExp
+}
+
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.currToken, Value: p.currToken.Literal}
+}
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	return &ast.IntegerLiteral{Token: p.currToken, Value: p.currToken.Literal}
+}
 func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	retStmt := &ast.ReturnStatement{Token: p.currToken}
 
@@ -83,7 +147,6 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 }
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {
-	// var letStmt *ast.LetStatement
 	letStmt := &ast.LetStatement{Token: p.currToken}
 
 	if !p.expectPeek(token.IDENT) {
