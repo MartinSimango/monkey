@@ -205,8 +205,8 @@ func TestIntegerExpression(t *testing.T) {
 
 	}
 
-	if ident.Value != "5" {
-		t.Errorf("ident.Value not 5 got %q", ident.Value)
+	if ident.Value != 5 {
+		t.Errorf("ident.Value not 5 got = %d", ident.Value)
 	}
 
 	if ident.TokenLiteral() != "5" {

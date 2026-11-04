@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/MartinSimango/monkey/ast"
 	"github.com/MartinSimango/monkey/lexer"
@@ -132,7 +133,12 @@ func (p *Parser) parseIdentifier() ast.Expression {
 	return &ast.Identifier{Token: p.currToken, Value: p.currToken.Literal}
 }
 func (p *Parser) parseIntegerLiteral() ast.Expression {
-	return &ast.IntegerLiteral{Token: p.currToken, Value: p.currToken.Literal}
+	val, err := strconv.ParseInt(p.currToken.Literal, 0, 64)
+	if err != nil {
+		p.errors = append(p.errors, fmt.Sprintf("failed to convert integer literal value of %s to int64 ", p.currToken.Literal))
+		return nil
+	}
+	return &ast.IntegerLiteral{Token: p.currToken, Value: val}
 }
 func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	retStmt := &ast.ReturnStatement{Token: p.currToken}

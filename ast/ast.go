@@ -89,7 +89,7 @@ func (i *Identifier) String() string {
 
 type IntegerLiteral struct {
 	Token token.Token
-	Value string
+	Value int64
 }
 
 var _ Node = &Identifier{}
@@ -100,7 +100,7 @@ func (i *IntegerLiteral) TokenLiteral() string {
 	return i.Token.Literal
 }
 func (i *IntegerLiteral) String() string {
-	return i.Value
+	return i.Token.Literal
 }
 
 type ReturnStatement struct {
