@@ -55,7 +55,8 @@ var _ Node = &LetStatement{}
 func (ls *LetStatement) String() string {
 	var out bytes.Buffer
 
-	out.WriteString(ls.TokenLiteral() + " ")
+	out.WriteString(ls.TokenLiteral())
+	out.WriteString(" ")
 	out.WriteString(ls.Name.String())
 	out.WriteString(" = ")
 
@@ -149,4 +150,33 @@ func (es *ExpressionStatement) statementNode() {}
 
 func (es *ExpressionStatement) TokenLiteral() string {
 	return es.Token.Literal
+}
+
+type PrefixExpression struct {
+	Token    token.Token // The prefix token; e.g. !
+	Operator string
+	Right    Expression
+}
+
+var _ Node = &PrefixExpression{}
+
+func (pe *PrefixExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString("(")
+	out.WriteString(pe.Operator)
+	if pe.Right != nil {
+		out.WriteString(pe.Right.String())
+	}
+	out.WriteString(")")
+	return out.String()
+}
+
+func (pe *PrefixExpression) statementNode() {}
+
+func (pe *PrefixExpression) TokenLiteral() string {
+	return pe.Token.Literal
+}
+
+func (pe *PrefixExpression) expressionNode() {
+
 }
